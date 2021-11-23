@@ -49,3 +49,5 @@ def plot_nb_of_subs(reponse):
     plt.hist(nb_of_subs)
     plt.ylabel('number of games')
     plt.xlabel('number of subs')
+
+print('bonjour')
