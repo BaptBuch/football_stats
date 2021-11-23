@@ -1,5 +1,5 @@
 import requests
-
+import matplotlib.pyplot as plt
 
 def define_request(
     token,
@@ -34,3 +34,18 @@ def define_request(
 def count_subs(match_idx,reponse):
     """détermine le nombre de remplacements effectués dans un match connaissant son index dans reponse"""
     return len(reponse.get('data')[match_idx].get('substitutions').get('data'))
+
+
+def plot_nb_of_subs(reponse):
+    """plots the number of subs for the given json"""
+    nb_of_subs = []
+    nb_of_games = 0
+    nb_of_pages = reponse.get('meta').get('pagination').get('total_pages')
+    for i in range(reponse.get('meta').get('pagination').get('total_pages')):
+        nb_of_games += len(reponse.get('data'))
+        for j in range(len(reponse.get('data'))):
+            nb_of_subs.append(count_subs(j, reponse))
+    print(f"The average number of subs is: {sum(nb_of_subs)/nb_of_games}")
+    plt.hist(nb_of_subs)
+    plt.ylabel('number of games')
+    plt.xlabel('number of subs')
