@@ -41,7 +41,7 @@ def plot_nb_of_subs(reponse):
     nb_of_subs = []
     nb_of_games = 0
     nb_of_pages = reponse.get('meta').get('pagination').get('total_pages')
-    for i in range(reponse.get('meta').get('pagination').get('total_pages')):
+    for i in range(nb_of_pages):
         nb_of_games += len(reponse.get('data'))
         for j in range(len(reponse.get('data'))):
             nb_of_subs.append(count_subs(j, reponse))
