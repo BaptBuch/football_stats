@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def define_request(
     token,
     start_year='2015-08-01',
-    end_year='2021-08-01',
+    end_year='2021-11-22',
     league_ids={
         'Ligue 1': 301,
         'Bundesliga': 82,
@@ -21,7 +21,7 @@ def define_request(
     params = {
         'api_token': token,
         'include':
-        f"league,stats,substitutions,goals,events&leagues={league_ids.values()}",
+        f"league,stats,substitutions.player,goals,events,lineup.player&leagues={league_ids.values()}",
         'per_page': 150
     }
     rep = requests.get(url=base_url, params=params)
