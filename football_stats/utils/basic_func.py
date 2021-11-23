@@ -26,11 +26,11 @@ def define_request(
     }
     rep = requests.get(url=base_url, params=params)
     if rep.status_code == 200:
-        return rep.json().get('data')
+        return rep.json()
     else:
         print('Error')
 
 
 def count_subs(match_idx,reponse):
     """détermine le nombre de remplacements effectués dans un match connaissant son index dans reponse"""
-    return len(reponse[match_idx].get('substitutions').get('data'))
+    return len(reponse.get('data')[match_idx].get('substitutions').get('data'))
