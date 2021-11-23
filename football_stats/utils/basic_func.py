@@ -30,7 +30,6 @@ def define_request(
     else:
         print('Error')
 
-
 def count_subs(match_idx,reponse):
     """détermine le nombre de remplacements effectués dans un match connaissant son index dans reponse"""
     return len(reponse.get('data')[match_idx].get('substitutions').get('data'))
