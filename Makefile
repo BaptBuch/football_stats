@@ -58,4 +58,4 @@ pypi:
 #      User interface
 # ----------------------------------
 run_streamlit:
-    streamlit run football_stats.app
+	streamlit run app.py
