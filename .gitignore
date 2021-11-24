@@ -5,4 +5,7 @@
 raw_data/
 *.csv
 **/__pycache__/
+notebooks/
 .env
+.python-version
+.vscode/
