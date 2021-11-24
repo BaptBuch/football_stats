@@ -276,6 +276,33 @@ def get_all_lineups(matchs):
             all_final_lineups.append(['NaN', 'NaN'])
     return all_start_lineups,all_ht_lineups,all_60_lineups, all_75_lineups, all_final_lineups, except_count
 
+def clean_lineups(list_of_lineups):
+    '''
+    In order to avoid unlikely values in our lineup due to lack of correct data, this function ensures that we only have
+    10 players per lineup by adding 1 to the minimum value of the lineup until its sum is equal to 10
+    and try to minimize the very high values by decreasing them while increasing the min value
+    '''
+    count_error=0
+    for lineups in list_of_lineups[:5]:
+        for lineup in lineups:
+            for team in lineup:
+                try:
+                    while sum(team)<10:
+                        team[team.index(min(team))]+=1
+                except:
+                    count_error+=1
+                for x in range(len(team)):
+                    if type(team[x])==int:
+                        if team[x] == 6:
+                            team[team.index(min(team))]+=1
+                            team[x]-=1
+                        elif team[x]>6:
+                            team[team.index(min(team))]+=2
+                            team[x]-=2
+    print(count_error)
+    return list_of_lineups
+
+
 def get_game_columns(list_matchs, new_rules='False'):
     '''
     Getting passed a list of dictionnaries for a series of matches,
@@ -376,6 +403,7 @@ def collect_data_to_df(list_of_matchs, new_rules='False', vectors=True):
     '''
     game_columns = get_game_columns(list_of_matchs, new_rules)
     list_of_lineups = get_all_lineups(list_of_matchs)
+    list_of_lineups=clean_lineups(list_of_lineups)
     columns_with_lineups=get_lineups_columns(game_columns, list_of_lineups, vectors)
     flatten_rows=get_flatten_rows(columns_with_lineups)
     final_df=get_final_df(flatten_rows, vectors)
