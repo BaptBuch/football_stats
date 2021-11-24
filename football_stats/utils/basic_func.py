@@ -100,3 +100,72 @@ def plot_minutes_played_by_subs(token=token,
     plt.hist(list_minutes_played_by_subs)
     plt.xlabel("duration of subs playing")
     plt.ylabel("number of games")
+
+
+def change_score_to_result(score):
+    if len(score) == 3:
+        if int(score[0]) > int(score[2]):
+            return 'H'
+        elif int(score[0]) < int(score[2]):
+            return 'A'
+        else:
+            return 'D'
+    else:
+        return 'D'
+
+
+def is_turnaround(match):
+    result_ht = change_score_to_result(match.get('scores').get('ht_score'))
+    result_ft = change_score_to_result(match.get('scores').get('ft_score'))
+    return result_ft == result_ht
+
+
+def count_turnarounds(token=token,
+                      first_day='2019-08-01',
+                      last_day='2020-07-31',
+                      league_ids=['301']):
+    (nb_pages, (my_url, params)) = get_nbpages_url(token,
+                                                   first_day,
+                                                   last_day,
+                                                   league_ids=league_ids)
+    total_nb_of_games = 0
+    total_nb_of_turnarounds = 0
+    for i in range(nb_pages):
+        page = get_json_page(my_url, params, i)
+        nb_of_games = len(page.get('data'))
+        total_nb_of_games += nb_of_games
+        for j in range(nb_of_games):
+            if is_turnaround(page.get('data')[j]):
+                total_nb_of_turnarounds += 1
+    return (total_nb_of_turnarounds / total_nb_of_games)
+
+
+def score_to_goals(match):
+    try:
+        return int(match.get('scores').get('ft_score')[0]) + int(
+            match.get('scores').get('ft_score')[2])
+    except:
+        return 0
+
+
+def count_plot_goals(token=token,
+                     first_day='2019-08-01',
+                     last_day='2020-07-31',
+                     league_ids=leagues_ids):
+    (nb_pages, (my_url, params)) = get_nbpages_url(token, first_day, last_day,
+                                                   league_ids)
+    total_nb_of_games = 0
+    list_nb_of_goals = []
+    for i in range(nb_pages):
+        page = get_json_page(my_url, params, i)
+        nb_of_games = len(page.get('data'))
+        total_nb_of_games += nb_of_games
+        for j in range(nb_of_games):
+            nb_of_goals = score_to_goals(page.get('data')[j])
+            list_nb_of_goals.append(nb_of_goals)
+    print(
+        f"The average number of goals is: {sum(list_nb_of_goals)/total_nb_of_games}"
+    )
+    plt.hist(list_nb_of_goals)
+    plt.xlabel('nb of goals')
+    plt.ylabel('nb of games')
