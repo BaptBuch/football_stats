@@ -17,8 +17,13 @@ def index():
     return {"ok": True}
 
 @app.get("/predict")
-def predict(input):
-    try:
-        return {'Prediction': input}
-    except:
-        return {'Error': 'Incorrect input, please try again'}
+def predict(input='no'):
+    '''
+    Call the params "input" with the value you want
+    ex: http://localhost:8000/predict?input=2
+    '''
+    if input=='no':
+        return {'Prediction': 'N/A',
+                'Status': 'Incorrect input, please try again or refer to /docs for details on how to use it.'}
+    return {'Prediction': input*2,
+                'Status': 'OK'}
