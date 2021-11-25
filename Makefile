@@ -53,3 +53,9 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#      User interface
+# ----------------------------------
+run_streamlit:
+	streamlit run app.py
