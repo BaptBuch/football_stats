@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 
 season_df=pd.read_csv('../raw_data/season_df.csv')
-standings_df = pd.read_csv('standings_df.csv')
+standings_df = pd.read_csv('../raw_data/standings_df.csv')
 
 leagues_ids = [301, 82, 564, 384, 8, 9, 72]
 
