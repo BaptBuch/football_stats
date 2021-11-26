@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 
-season_df=pd.read_csv('../raw_data/season_df.csv')
-standings_df = pd.read_csv('../raw_data/standings_df.csv')
+#season_df=pd.read_csv('../raw_data/season.csv')
+#standings_df = pd.read_csv('../raw_data/standings_df.csv')
 
 leagues_ids = [301, 82, 564, 384, 8, 9, 72]
 
@@ -15,34 +15,32 @@ env_path = find_dotenv()
 load_dotenv(env_path)
 token = os.getenv('API_TOKEN')
 
+
 def get_previous_season_id(match):
-    try:
-        row = list(season_df['season_id']).index(match.get('season_id'))
-        return season_df.iloc[(row - 1), :].season_id
-    except:
-        return 'nan'
+    season_df = pd.read_csv('../raw_data/season.csv')
+    current_season_id = match.get('season_id')
+    row = season_df.index[season_df['season_id'] == current_season_id][0]
+    return season_df.loc[row - 1]['season_id']
 
 
 def get_lastyear_points(match):
-    count_except = 0
+    standings_df = pd.read_csv('../raw_data/standings_df.csv', index_col="season_id")
     localteam_id = match.get('localteam_id')
     visitorteam_id = match.get('visitorteam_id')
-    season_id = match.get('season_id')
+    season_id = get_previous_season_id(match)
     localteam_column_name = f"{season_id}_{localteam_id}_points"
     visitorteam_column_name = f"{season_id}_{visitorteam_id}_points"
     try:
         localteam_lastyear_points = standings_df.at[season_id,
-                                                    localteam_column_name]
+                                                         localteam_column_name]
     except:
-        count_except += 1
         localteam_lastyear_points = 45
     try:
         visitorteam_lastyear_points = standings_df.at[season_id,
-                                                      visitorteam_column_name]
+                                                          visitorteam_column_name]
     except:
-        count_except += 1
         visitorteam_lastyear_points = 45
-    print(count_except)
+        
     return localteam_lastyear_points, visitorteam_lastyear_points
 
 
@@ -54,16 +52,40 @@ def get_thisyear_position(match):
         return (10, 11)
 
 
+def get_ht_result_from_ht_score(match):
+    try:
+        ht_score = match.get('scores').get('ht_score')
+        if ht_score[0] > ht_score[2]:
+            return 'H'
+        elif ht_score[0] < ht_score[2]:
+            return 'A'
+        return 'D'
+    except:
+        return 'D'
+
+
+def get_ft_result_from_ft_score(match):
+    try:
+        ft_score = match.get('scores').get('ft_score')
+        if ft_score[0] > ft_score[2]:
+            return 'H'
+        elif ft_score[0] < ft_score[2]:
+            return 'A'
+        return 'D'
+    except:
+        return 'D'
+
+
 def get_game_data(list_matchs):
     '''
     Getting passed a list of dictionnaries for a series of matches,
     return main data for each game as a list of lists
     '''
     game_data = []
-    count_except = 0
     for x in range(len(list_matchs)):
         match = list_matchs[x]
         H_lastyear_points, A_lastyear_points = get_lastyear_points(match)
+        print(H_lastyear_points)
         H_thisyear_position, A_thisyear_position = get_thisyear_position(match)
         try:
             score_ht = [
@@ -71,32 +93,14 @@ def get_game_data(list_matchs):
             ]
         except:
             score_ht = [0, 0]
-        try:
-            if match['scores']['ht_score'][0] > match['scores']['ht_score'][2]:
-                result_ht = 'H'
-            elif match['scores']['ht_score'][0] < match['scores']['ht_score'][
-                    2]:
-                result_ht = 'A'
-            else:
-                result_ht = 'D'
-        except:
-            result_ht = 'D'
+        result_ht=get_ht_result_from_ht_score(match)
         try:
             score_ft = [
                 match['scores']['ft_score'][0], match['scores']['ft_score'][2]
             ]
         except:
             score_ft = [0, 0]
-        try:
-            if match['scores']['ft_score'][0] > match['scores']['ft_score'][2]:
-                result_ft = 'H'
-            elif match['scores']['ft_score'][0] < match['scores']['ft_score'][
-                    2]:
-                result_ft = 'A'
-            else:
-                result_ft = 'D'
-        except:
-            result_ht = 'D'
+        result_ft=get_ft_result_from_ft_score(match)
         if datetime.strptime(
                 match.get('time').get('starting_at').get('date'),
                 "%Y-%m-%d") > datetime(2020, 5, 8):
@@ -118,8 +122,7 @@ def get_game_data(list_matchs):
         match_list = []
         match_list.append(list_to_append)
         game_data.append(match_list)
-    print(count_except)
-    return game_data
+    return (game_data)
 
 
 def get_lineup(match):
