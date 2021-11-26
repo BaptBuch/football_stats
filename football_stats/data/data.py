@@ -6,6 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 
 season_df=pd.read_csv('../raw_data/season_df.csv')
+standings_df = pd.read_csv('standings_df.csv')
 
 leagues_ids = [301, 82, 564, 384, 8, 9, 72]
 
@@ -21,55 +22,36 @@ def get_previous_season_id(match):
     except:
         return 'nan'
 
-def get_standings(match):
-    localteam_id = match.get('localteam_id')
-    visitorteam_id = match.get('visitorteam_id')
-    previous_season_id = get_previous_season_id(match)
-    req = requests.get(
-        f'https://soccer.sportmonks.com/api/v2.0/standings/season/{previous_season_id}?api_token={token}'
-    )
-    try:
-        for team in req.json().get('data')[0].get('standings').get('data'):
-            if team.get('team_id') == localteam_id:
-                localteam_standing = team.get('total').get('points')
-            elif team.get('team_id') == visitorteam_id:
-                visitorteam_standing = team.get('total').get('points')
-        return (localteam_standing, visitorteam_standing)
-    except:
-        return (45, 45)
 
-
-def get_recent_form(match):
-    """given a match returns the localteam and visitorteam recent forms"""
+def get_lastyear_points(match):
+    count_except = 0
     localteam_id = match.get('localteam_id')
     visitorteam_id = match.get('visitorteam_id')
     season_id = match.get('season_id')
-    localteam_recent_points = 0
-    visitorteam_recent_points = 0
-    req = requests.get(
-        f"https://soccer.sportmonks.com/api/v2.0/standings/season/{season_id}?api_token={token}"
-    )
+    localteam_column_name = f"{season_id}_{localteam_id}_points"
+    visitorteam_column_name = f"{season_id}_{visitorteam_id}_points"
     try:
-        standings = req.json().get('data')[0].get('standings').get('data')
-        nb_teams = len(standings)
-        for i in range(nb_teams):
-            if standings[i].get('team_id') == localteam_id:
-                localteam_recent_form = standings[i].get('recent_form')
-            elif standings[i].get('team_id') == visitorteam_id:
-                visitorteam_recent_form = standings[i].get('recent_form')
-        for char in localteam_recent_form:
-            if char == 'W':
-                localteam_recent_points += 3
-            elif char == 'D':
-                localteam_recent_points += 1
-        for char in visitorteam_recent_form:
-            if char == 'W':
-                visitorteam_recent_points += 3
-            elif char == 'D':
-                visitorteam_recent_points += 1
-        return (localteam_recent_points, visitorteam_recent_points)
+        localteam_lastyear_points = standings_df.at[season_id,
+                                                    localteam_column_name]
     except:
-        return (6, 6)
+        count_except += 1
+        localteam_lastyear_points = 45
+    try:
+        visitorteam_lastyear_points = standings_df.at[season_id,
+                                                      visitorteam_column_name]
+    except:
+        count_except += 1
+        visitorteam_lastyear_points = 45
+    print(count_except)
+    return localteam_lastyear_points, visitorteam_lastyear_points
+
+
+def get_thisyear_position(match):
+    try:
+        return (match.get('standings')['localteam_position'],
+                match.get('standings')['visitorteam_position'])
+    except:
+        return (10, 11)
 
 
 def get_game_data(list_matchs):
@@ -81,8 +63,8 @@ def get_game_data(list_matchs):
     count_except = 0
     for x in range(len(list_matchs)):
         match = list_matchs[x]
-        H_standings, A_standings = get_standings(match)
-        H_recent_form, A_recent_form = get_recent_form(match)
+        H_lastyear_points, A_lastyear_points = get_lastyear_points(match)
+        H_thisyear_position, A_thisyear_position = get_thisyear_position(match)
         try:
             score_ht = [
                 match['scores']['ht_score'][0], match['scores']['ht_score'][2]
@@ -121,16 +103,17 @@ def get_game_data(list_matchs):
             if match['league_id'] != 8:
                 list_to_append = [
                     'True', match['id'], match['localteam_id'],
-                    match['visitorteam_id'], match['season_id'], H_standings,
-                    A_standings, H_recent_form, A_recent_form, score_ht,
-                    result_ht, score_ft, result_ft
+                    match['visitorteam_id'], match['season_id'],
+                    H_lastyear_points, A_lastyear_points, H_thisyear_position,
+                    A_thisyear_position, score_ht, result_ht, score_ft,
+                    result_ft
                 ]
         else:
             list_to_append = [
                 'False', match['id'], match['localteam_id'],
-                match['visitorteam_id'], match['season_id'], H_standings,
-                A_standings, H_recent_form, A_recent_form, score_ht, result_ht,
-                score_ft, result_ft
+                match['visitorteam_id'], match['season_id'], H_lastyear_points,
+                A_lastyear_points, H_thisyear_position, A_thisyear_position,
+                score_ht, result_ht, score_ft, result_ft
             ]
         match_list = []
         match_list.append(list_to_append)
@@ -469,14 +452,16 @@ def get_final_df(list_of_flatten_rows, vectors=False):
     else:
         columns = [
             'new_rules', 'game_id', 'localteam_id', 'visitorteam_id',
-            'season_id',"H_standings","A_standings","H_recent_form","A_recent_form", "score_ht", "result_ht", "score_ft", "result_ft",
-            "Home_D_start", "Home_M_start", "Home_A_start", "Away_D_start",
-            "Away_M_start", "Away_A_start", "Home_D_ht", "Home_M_ht",
-            "Home_A_ht", "Away_D_ht", "Away_M_ht", "Away_A_ht", "Home_D_60",
-            "Home_M_60", "Home_A_60", "Away_D_60", "Away_M_60", "Away_A_60",
-            "Home_D_75", "Home_M_75", "Home_A_75", "Away_D_75", "Away_M_75",
-            "Away_A_75", "Home_D_final", "Home_M_final", "Home_A_final",
-            "Away_D_final", "Away_M_final", "Away_A_final"
+            'season_id', 'H_lastyear_points', 'A_lastyear_points',
+            'H_thisyear_position', 'A_thisyear_position', "score_ht", "result_ht",
+            "score_ft", "result_ft", "Home_D_start", "Home_M_start",
+            "Home_A_start", "Away_D_start", "Away_M_start", "Away_A_start",
+            "Home_D_ht", "Home_M_ht", "Home_A_ht", "Away_D_ht", "Away_M_ht",
+            "Away_A_ht", "Home_D_60", "Home_M_60", "Home_A_60", "Away_D_60",
+            "Away_M_60", "Away_A_60", "Home_D_75", "Home_M_75", "Home_A_75",
+            "Away_D_75", "Away_M_75", "Away_A_75", "Home_D_final",
+            "Home_M_final", "Home_A_final", "Away_D_final", "Away_M_final",
+            "Away_A_final"
         ]
     df_lineups = pd.DataFrame(list_of_flatten_rows, columns=columns)
     return df_lineups
