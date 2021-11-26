@@ -5,7 +5,6 @@ import numpy as np
 token = 'wuZj7IfGRn7HD2EacN7WX8KEuATaj12fyqZuHPWvFnKed06QphCKQecSuno8'
 leagues_ids =['301','82','564','384','8','9','72']
 
-
 def get_nbpages_url(
     token=token,
     first_day='2015-08-01',
