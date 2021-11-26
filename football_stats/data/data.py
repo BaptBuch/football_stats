@@ -5,7 +5,8 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 
-season_df=pd.read_csv('../raw_data/season_df.csv')
+#season_df=pd.read_csv('../raw_data/season.csv')
+#standings_df = pd.read_csv('../raw_data/standings_df.csv')
 
 leagues_ids = [301, 82, 564, 384, 8, 9, 72]
 
@@ -14,62 +15,65 @@ env_path = find_dotenv()
 load_dotenv(env_path)
 token = os.getenv('API_TOKEN')
 
+
 def get_previous_season_id(match):
-    try:
-        row = list(season_df['season_id']).index(match.get('season_id'))
-        return season_df.iloc[(row - 1), :].season_id
-    except:
-        return 'nan'
+    season_df = pd.read_csv('../raw_data/season.csv')
+    current_season_id = match.get('season_id')
+    row = season_df.index[season_df['season_id'] == current_season_id][0]
+    return season_df.loc[row - 1]['season_id']
 
-def get_standings(match):
+
+def get_lastyear_points(match):
+    standings_df = pd.read_csv('../raw_data/standings_df.csv', index_col="season_id")
     localteam_id = match.get('localteam_id')
     visitorteam_id = match.get('visitorteam_id')
-    previous_season_id = get_previous_season_id(match)
-    req = requests.get(
-        f'https://soccer.sportmonks.com/api/v2.0/standings/season/{previous_season_id}?api_token={token}'
-    )
+    season_id = get_previous_season_id(match)
+    localteam_column_name = f"{season_id}_{localteam_id}_points"
+    visitorteam_column_name = f"{season_id}_{visitorteam_id}_points"
     try:
-        for team in req.json().get('data')[0].get('standings').get('data'):
-            if team.get('team_id') == localteam_id:
-                localteam_standing = team.get('total').get('points')
-            elif team.get('team_id') == visitorteam_id:
-                visitorteam_standing = team.get('total').get('points')
-        return (localteam_standing, visitorteam_standing)
+        localteam_lastyear_points = standings_df.at[season_id,
+                                                         localteam_column_name]
     except:
-        return (45, 45)
+        localteam_lastyear_points = 45
+    try:
+        visitorteam_lastyear_points = standings_df.at[season_id,
+                                                          visitorteam_column_name]
+    except:
+        visitorteam_lastyear_points = 45
+        
+    return localteam_lastyear_points, visitorteam_lastyear_points
 
 
-def get_recent_form(match):
-    """given a match returns the localteam and visitorteam recent forms"""
-    localteam_id = match.get('localteam_id')
-    visitorteam_id = match.get('visitorteam_id')
-    season_id = match.get('season_id')
-    localteam_recent_points = 0
-    visitorteam_recent_points = 0
-    req = requests.get(
-        f"https://soccer.sportmonks.com/api/v2.0/standings/season/{season_id}?api_token={token}"
-    )
+def get_thisyear_position(match):
     try:
-        standings = req.json().get('data')[0].get('standings').get('data')
-        nb_teams = len(standings)
-        for i in range(nb_teams):
-            if standings[i].get('team_id') == localteam_id:
-                localteam_recent_form = standings[i].get('recent_form')
-            elif standings[i].get('team_id') == visitorteam_id:
-                visitorteam_recent_form = standings[i].get('recent_form')
-        for char in localteam_recent_form:
-            if char == 'W':
-                localteam_recent_points += 3
-            elif char == 'D':
-                localteam_recent_points += 1
-        for char in visitorteam_recent_form:
-            if char == 'W':
-                visitorteam_recent_points += 3
-            elif char == 'D':
-                visitorteam_recent_points += 1
-        return (localteam_recent_points, visitorteam_recent_points)
+        return (match.get('standings')['localteam_position'],
+                match.get('standings')['visitorteam_position'])
     except:
-        return (6, 6)
+        return (10, 11)
+
+
+def get_ht_result_from_ht_score(match):
+    try:
+        ht_score = match.get('scores').get('ht_score')
+        if ht_score[0] > ht_score[2]:
+            return 'H'
+        elif ht_score[0] < ht_score[2]:
+            return 'A'
+        return 'D'
+    except:
+        return 'D'
+
+
+def get_ft_result_from_ft_score(match):
+    try:
+        ft_score = match.get('scores').get('ft_score')
+        if ft_score[0] > ft_score[2]:
+            return 'H'
+        elif ft_score[0] < ft_score[2]:
+            return 'A'
+        return 'D'
+    except:
+        return 'D'
 
 
 def get_game_data(list_matchs):
@@ -78,65 +82,47 @@ def get_game_data(list_matchs):
     return main data for each game as a list of lists
     '''
     game_data = []
-    count_except = 0
     for x in range(len(list_matchs)):
         match = list_matchs[x]
-        H_standings, A_standings = get_standings(match)
-        H_recent_form, A_recent_form = get_recent_form(match)
+        H_lastyear_points, A_lastyear_points = get_lastyear_points(match)
+        print(H_lastyear_points)
+        H_thisyear_position, A_thisyear_position = get_thisyear_position(match)
         try:
             score_ht = [
                 match['scores']['ht_score'][0], match['scores']['ht_score'][2]
             ]
         except:
             score_ht = [0, 0]
-        try:
-            if match['scores']['ht_score'][0] > match['scores']['ht_score'][2]:
-                result_ht = 'H'
-            elif match['scores']['ht_score'][0] < match['scores']['ht_score'][
-                    2]:
-                result_ht = 'A'
-            else:
-                result_ht = 'D'
-        except:
-            result_ht = 'D'
+        result_ht=get_ht_result_from_ht_score(match)
         try:
             score_ft = [
                 match['scores']['ft_score'][0], match['scores']['ft_score'][2]
             ]
         except:
             score_ft = [0, 0]
-        try:
-            if match['scores']['ft_score'][0] > match['scores']['ft_score'][2]:
-                result_ft = 'H'
-            elif match['scores']['ft_score'][0] < match['scores']['ft_score'][
-                    2]:
-                result_ft = 'A'
-            else:
-                result_ft = 'D'
-        except:
-            result_ht = 'D'
+        result_ft=get_ft_result_from_ft_score(match)
         if datetime.strptime(
                 match.get('time').get('starting_at').get('date'),
                 "%Y-%m-%d") > datetime(2020, 5, 8):
             if match['league_id'] != 8:
                 list_to_append = [
                     'True', match['id'], match['localteam_id'],
-                    match['visitorteam_id'], match['season_id'], H_standings,
-                    A_standings, H_recent_form, A_recent_form, score_ht,
-                    result_ht, score_ft, result_ft
+                    match['visitorteam_id'], match['season_id'],
+                    H_lastyear_points, A_lastyear_points, H_thisyear_position,
+                    A_thisyear_position, score_ht, result_ht, score_ft,
+                    result_ft
                 ]
         else:
             list_to_append = [
                 'False', match['id'], match['localteam_id'],
-                match['visitorteam_id'], match['season_id'], H_standings,
-                A_standings, H_recent_form, A_recent_form, score_ht, result_ht,
-                score_ft, result_ft
+                match['visitorteam_id'], match['season_id'], H_lastyear_points,
+                A_lastyear_points, H_thisyear_position, A_thisyear_position,
+                score_ht, result_ht, score_ft, result_ft
             ]
         match_list = []
         match_list.append(list_to_append)
         game_data.append(match_list)
-    print(count_except)
-    return game_data
+    return (game_data)
 
 
 def get_lineup(match):
@@ -469,14 +455,16 @@ def get_final_df(list_of_flatten_rows, vectors=False):
     else:
         columns = [
             'new_rules', 'game_id', 'localteam_id', 'visitorteam_id',
-            'season_id',"H_standings","A_standings","H_recent_form","A_recent_form", "score_ht", "result_ht", "score_ft", "result_ft",
-            "Home_D_start", "Home_M_start", "Home_A_start", "Away_D_start",
-            "Away_M_start", "Away_A_start", "Home_D_ht", "Home_M_ht",
-            "Home_A_ht", "Away_D_ht", "Away_M_ht", "Away_A_ht", "Home_D_60",
-            "Home_M_60", "Home_A_60", "Away_D_60", "Away_M_60", "Away_A_60",
-            "Home_D_75", "Home_M_75", "Home_A_75", "Away_D_75", "Away_M_75",
-            "Away_A_75", "Home_D_final", "Home_M_final", "Home_A_final",
-            "Away_D_final", "Away_M_final", "Away_A_final"
+            'season_id', 'H_lastyear_points', 'A_lastyear_points',
+            'H_thisyear_position', 'A_thisyear_position', "score_ht", "result_ht",
+            "score_ft", "result_ft", "Home_D_start", "Home_M_start",
+            "Home_A_start", "Away_D_start", "Away_M_start", "Away_A_start",
+            "Home_D_ht", "Home_M_ht", "Home_A_ht", "Away_D_ht", "Away_M_ht",
+            "Away_A_ht", "Home_D_60", "Home_M_60", "Home_A_60", "Away_D_60",
+            "Away_M_60", "Away_A_60", "Home_D_75", "Home_M_75", "Home_A_75",
+            "Away_D_75", "Away_M_75", "Away_A_75", "Home_D_final",
+            "Home_M_final", "Home_A_final", "Away_D_final", "Away_M_final",
+            "Away_A_final"
         ]
     df_lineups = pd.DataFrame(list_of_flatten_rows, columns=columns)
     return df_lineups
