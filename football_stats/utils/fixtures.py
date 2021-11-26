@@ -1,15 +1,16 @@
 import requests
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
-token = 'wuZj7IfGRn7HD2EacN7WX8KEuATaj12fyqZuHPWvFnKed06QphCKQecSuno8'
-leagues_ids =['301','82','564','384','8','9','72']
+token = os.getenv('API_TOKEN')
+league_ids =[301,82,564,384,8,9,72]
 
 def get_nbpages_url(
     token=token,
     first_day='2015-08-01',
     last_day='2021-11-22',
-    league_ids=leagues_ids):
+    league_ids=league_ids):
     """permet d'interroger l'api pour obtenir le nb de pages de notre requête et les params utilisés en précisant le token utilisé
     les dates de début et de fin(format 'YYYY-MM-DD') et les compétitions souhaitées
     (sous la forme d'un string d'une liste d'ids}"""
@@ -40,13 +41,13 @@ def get_json_page(base_url,params,page_idx):
 def plot_number_of_subs(token=token,
                         first_day='2015-08-01',
                         last_day='2021-11-22',
-                        league_ids=leagues_ids):
+                        league_ids=league_ids):
     """computes the avg nb of subs and plots the number of subs"""
     base_url = f"https://soccer.sportmonks.com/api/v2.0/fixtures/between/{first_day}/{last_day}"
     nb_of_pages, params = get_nbpages_url(token=token,
                                           first_day=first_day,
                                           last_day=last_day,
-                                          league_ids=leagues_ids)
+                                          league_ids=league_ids)
     total_nb_of_games = 0
     list_nb_of_subs = []
     for i in range(nb_of_pages):
@@ -78,7 +79,7 @@ def get_minutes_played_by_subs(match_idx, page):
 def plot_minutes_played_by_subs(token=token,
                                 first_day='2015-08-01',
                                 last_day='2021-11-22',
-                                league_ids=leagues_ids):
+                                league_ids=league_ids):
     """computes the avg duration of subs playing and displays the hist plot of duration for subs playing"""
     (nb_pages, (my_url, params)) = get_nbpages_url(token,
                                                    first_day,
@@ -150,7 +151,7 @@ def score_to_goals(match):
 def count_plot_goals(token=token,
                      first_day='2019-08-01',
                      last_day='2020-07-31',
-                     league_ids=leagues_ids):
+                     league_ids=league_ids):
     (nb_pages, (my_url, params)) = get_nbpages_url(token, first_day, last_day,
                                                    league_ids)
     total_nb_of_games = 0

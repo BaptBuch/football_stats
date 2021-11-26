@@ -24,7 +24,7 @@ def get_previous_season_id(match):
 
 
 def get_lastyear_points(match):
-    standings_df = pd.read_csv('../raw_data/standings_df.csv', index_col="season_id")
+    standings_df = pd.read_csv('../raw_data/standings.csv')
     localteam_id = match.get('localteam_id')
     visitorteam_id = match.get('visitorteam_id')
     season_id = get_previous_season_id(match)
@@ -40,7 +40,7 @@ def get_lastyear_points(match):
                                                           visitorteam_column_name]
     except:
         visitorteam_lastyear_points = 45
-        
+
     return localteam_lastyear_points, visitorteam_lastyear_points
 
 
@@ -85,7 +85,6 @@ def get_game_data(list_matchs):
     for x in range(len(list_matchs)):
         match = list_matchs[x]
         H_lastyear_points, A_lastyear_points = get_lastyear_points(match)
-        print(H_lastyear_points)
         H_thisyear_position, A_thisyear_position = get_thisyear_position(match)
         try:
             score_ht = [
