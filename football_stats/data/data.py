@@ -82,8 +82,7 @@ def get_game_data(list_matchs):
     return main data for each game as a list of lists
     '''
     game_data = []
-    for x in range(len(list_matchs)):
-        match = list_matchs[x]
+    for match in list_matchs:
         H_lastyear_points, A_lastyear_points = get_lastyear_points(match)
         H_thisyear_position, A_thisyear_position = get_thisyear_position(match)
         try:
