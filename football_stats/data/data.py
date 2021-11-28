@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 from datetime import datetime
 
 #season_df=pd.read_csv('../raw_data/season.csv')
-#standings_df = pd.read_csv('../raw_data/standings_df.csv')
+#standings_df = pd.read_csv('../raw_data/standings.csv')
 
 leagues_ids = [301, 82, 564, 384, 8, 9, 72]
 
@@ -25,22 +25,22 @@ def get_previous_season_id(match):
 
 def get_lastyear_points(match):
     standings_df = pd.read_csv('../raw_data/standings.csv')
+    standings_df.set_index('season_id', inplace=True)
     localteam_id = match.get('localteam_id')
     visitorteam_id = match.get('visitorteam_id')
     season_id = get_previous_season_id(match)
-    localteam_column_name = f"{season_id}_{localteam_id}_points"
-    visitorteam_column_name = f"{season_id}_{visitorteam_id}_points"
+    localteam_column_name = f"{season_id}-{localteam_id}"
+    visitorteam_column_name = f"{season_id}-{visitorteam_id}"
     try:
-        localteam_lastyear_points = standings_df.at[season_id,
-                                                         localteam_column_name]
+        localteam_lastyear_points = standings_df.loc[season_id,
+                                                     localteam_column_name]
     except:
-        localteam_lastyear_points = 45
+        localteam_lastyear_points = 40
     try:
-        visitorteam_lastyear_points = standings_df.at[season_id,
-                                                          visitorteam_column_name]
+        visitorteam_lastyear_points = standings_df.loc[season_id,
+                                                       visitorteam_column_name]
     except:
-        visitorteam_lastyear_points = 45
-
+        visitorteam_lastyear_points = 40
     return localteam_lastyear_points, visitorteam_lastyear_points
 
 
