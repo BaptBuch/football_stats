@@ -207,15 +207,16 @@ def get_ht_lineups(match, lineup_home, lineup_away):
                             lineup_away_ht[1]-=1
         return lineup_home_ht, lineup_away_ht
 
-def get_60_lineups(match, lineup_home, lineup_away):
+
+def get_60_lineups(match, lineup_home_ht, lineup_away_ht):
     '''
-    Getting a match as a dict and its starting lineups,
+    Getting a match as a dict and its ht_lineups,
     return both lineups updated at 60'
     '''
     home_team=str(match.get('localteam_id'))
     lineup=match.get('lineup').get('data')
-    lineup_home_60=lineup_home
-    lineup_away_60=lineup_away
+    lineup_home_60=lineup_home_ht
+    lineup_away_60=lineup_away_ht
     for subs in match.get('substitutions').get('data'):
         if (subs['minute']>45) and (subs['minute']<61):
             if str(subs['team_id'])==home_team:
@@ -258,17 +259,18 @@ def get_60_lineups(match, lineup_home, lineup_away):
                             lineup_away_60[1]-=1
         return lineup_home_60, lineup_away_60
 
-def get_75_lineups(match, lineup_home, lineup_away):
+
+def get_75_lineups(match, lineup_home_60, lineup_away_60):
     '''
-    Getting a match as a dict and its starting lineups,
+    Getting a match as a dict and its 60_lineups,
     return both lineups updated at 75'
     '''
     home_team=str(match.get('localteam_id'))
     lineup=match.get('lineup').get('data')
-    lineup_home_75=lineup_home
-    lineup_away_75=lineup_away
+    lineup_home_75=lineup_home_60
+    lineup_away_75=lineup_away_60
     for subs in match.get('substitutions').get('data'):
-        if subs['minute']<75:
+        if (subs['minute']>60) and (subs['minute']<76):
             if str(subs['team_id'])==home_team:
                 if subs['player']['data']['position_id']==2:
                     lineup_home_75[0]+=1
@@ -309,52 +311,56 @@ def get_75_lineups(match, lineup_home, lineup_away):
                             lineup_away_75[1]-=1
         return lineup_home_75, lineup_away_75
 
-def get_90_lineups(match, lineup_home, lineup_away):
+
+def get_90_lineups(match, lineup_home_75, lineup_away_75):
     '''
     Getting a match as a dict and its starting lineups,
     return both lineups updated at 90'
     '''
     home_team=str(match.get('localteam_id'))
     lineup=match.get('lineup').get('data')
+    lineup_home = lineup_home_75
+    lineup_away = lineup_away_75
     for subs in match.get('substitutions').get('data'):
-        if str(subs['team_id'])==home_team:
-            if subs['player']['data']['position_id']==2:
-                lineup_home[0]+=1
-            elif subs['player']['data']['position_id']==3:
-                lineup_home[1]+=1
-            elif subs['player']['data']['position_id']==4:
-                lineup_home[2]+=1
-            elif subs['player']['data']['position_id']==None:
-                lineup_home[1]+=1
-            for player in lineup:
-                if str(subs['player_out_id'])==str(player['player_id']):
-                    if player['player']['data']['position_id']==2:
-                        lineup_home[0]-=1
-                    elif player['player']['data']['position_id']==3:
-                        lineup_home[1]-=1
-                    elif player['player']['data']['position_id']==4:
-                        lineup_home[2]-=1
-                    else:
-                        lineup_home[1]-=1
-        else:
-            if subs['player']['data']['position_id']==2:
-                lineup_away[0]+=1
-            elif subs['player']['data']['position_id']==3:
-                lineup_away[1]+=1
-            elif subs['player']['data']['position_id']==4:
-                lineup_away[2]+=1
-            elif subs['player']['data']['position_id']==None:
-                lineup_away[1]+=1
-            for player in lineup:
-                if str(subs['player_out_id'])==str(player['player_id']):
-                    if player['player']['data']['position_id']==2:
-                        lineup_away[0]-=1
-                    elif str(player['player']['data']['position_id'])==str(3):
-                        lineup_away[1]-=1
-                    elif player['player']['data']['position_id']==4:
-                        lineup_away[2]-=1
-                    else:
-                        lineup_away[1]-=1
+        if subs['minute']>75:
+            if str(subs['team_id'])==home_team:
+                if subs['player']['data']['position_id']==2:
+                    lineup_home[0]+=1
+                elif subs['player']['data']['position_id']==3:
+                    lineup_home[1]+=1
+                elif subs['player']['data']['position_id']==4:
+                    lineup_home[2]+=1
+                elif subs['player']['data']['position_id']==None:
+                    lineup_home[1]+=1
+                for player in lineup:
+                    if str(subs['player_out_id'])==str(player['player_id']):
+                        if player['player']['data']['position_id']==2:
+                            lineup_home[0]-=1
+                        elif player['player']['data']['position_id']==3:
+                            lineup_home[1]-=1
+                        elif player['player']['data']['position_id']==4:
+                            lineup_home[2]-=1
+                        else:
+                            lineup_home[1]-=1
+            else:
+                if subs['player']['data']['position_id']==2:
+                    lineup_away[0]+=1
+                elif subs['player']['data']['position_id']==3:
+                    lineup_away[1]+=1
+                elif subs['player']['data']['position_id']==4:
+                    lineup_away[2]+=1
+                elif subs['player']['data']['position_id']==None:
+                    lineup_away[1]+=1
+                for player in lineup:
+                    if str(subs['player_out_id'])==str(player['player_id']):
+                        if player['player']['data']['position_id']==2:
+                            lineup_away[0]-=1
+                        elif str(player['player']['data']['position_id'])==str(3):
+                            lineup_away[1]-=1
+                        elif player['player']['data']['position_id']==4:
+                            lineup_away[2]-=1
+                        else:
+                            lineup_away[1]-=1
 
     return lineup_home, lineup_away
 
@@ -368,27 +374,25 @@ def get_all_lineups(matchs):
     all_60_lineups=[]
     all_75_lineups=[]
     all_final_lineups=[]
-    except_count=0
     for match in matchs:
         try:
             starting_lineup_home, starting_lineup_away = get_lineup(match)
             lineup_ht_home, lineup_ht_away=get_ht_lineups(match, starting_lineup_home, starting_lineup_away)
             lineup_60_home, lineup_60_away =get_60_lineups(match, lineup_ht_home, lineup_ht_away)
-            lineup_75_home, lineup_75_away =get_75_lineups(match, lineup_60_home, lineup_60_away)
-            final_lineup_home, final_lineup_away = get_90_lineups(match, starting_lineup_home, starting_lineup_away)
+            lineup_75_home, lineup_75_away = get_75_lineups(match, lineup_60_home, lineup_60_away)
+            final_lineup_home, final_lineup_away = get_90_lineups(match, lineup_75_home, lineup_75_away)
             all_start_lineups.append([starting_lineup_home, starting_lineup_away])
             all_ht_lineups.append([lineup_ht_home, lineup_ht_away])
             all_60_lineups.append([lineup_60_home, lineup_60_away])
             all_75_lineups.append([lineup_75_home, lineup_75_away])
             all_final_lineups.append([final_lineup_home, final_lineup_away])
         except:
-            except_count+=1
             all_start_lineups.append(['NaN', 'NaN'])
             all_ht_lineups.append(['NaN', 'NaN'])
             all_60_lineups.append(['NaN', 'NaN'])
             all_75_lineups.append(['NaN', 'NaN'])
             all_final_lineups.append(['NaN', 'NaN'])
-    return all_start_lineups,all_ht_lineups,all_60_lineups, all_75_lineups, all_final_lineups, except_count
+    return all_start_lineups,all_ht_lineups,all_60_lineups, all_75_lineups, all_final_lineups
 
 def clean_lineups(list_of_lineups):
     '''
@@ -397,7 +401,7 @@ def clean_lineups(list_of_lineups):
     and try to minimize the very high values by decreasing them while increasing the min value
     '''
     count_error=0
-    for lineups in list_of_lineups[:5]:
+    for lineups in list_of_lineups:
         for lineup in lineups:
             for team in lineup:
                 try:
