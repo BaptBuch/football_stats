@@ -46,9 +46,14 @@ def get_lastyear_points(match):
 
 def get_thisyear_position(match):
     try:
-        return (match.get('standings')['localteam_position'],
-                match.get('standings')['visitorteam_position'])
+        H_thisyear_position = match.get('standings')['localteam_position']
+        A_thisyear_position = match.get('standings')['visitorteam_position']
     except:
+        H_thisyear_position = 10
+        A_thisyear_position = 11
+    if (H_thisyear_position is not None) and (A_thisyear_position is not None):
+        return H_thisyear_position, A_thisyear_position
+    else:
         return (10, 11)
 
 
@@ -161,7 +166,7 @@ def get_ht_lineups(match, lineup_home, lineup_away):
     lineup_home_ht=lineup_home
     lineup_away_ht=lineup_away
     for subs in match.get('substitutions').get('data'):
-        if subs['minute']<45:
+        if subs['minute']<46:
             if str(subs['team_id'])==home_team:
                 if subs['player']['data']['position_id']==2:
                     lineup_home_ht[0]+=1
@@ -212,7 +217,7 @@ def get_60_lineups(match, lineup_home, lineup_away):
     lineup_home_60=lineup_home
     lineup_away_60=lineup_away
     for subs in match.get('substitutions').get('data'):
-        if (subs['minute']>45) and (subs['minute']<60):
+        if (subs['minute']>45) and (subs['minute']<61):
             if str(subs['team_id'])==home_team:
                 if subs['player']['data']['position_id']==2:
                     lineup_home_60[0]+=1
