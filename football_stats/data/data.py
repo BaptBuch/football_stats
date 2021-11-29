@@ -400,7 +400,6 @@ def clean_lineups(list_of_lineups):
     10 players per lineup by adding 1 to the minimum value of the lineup until its sum is equal to 10
     and try to minimize the very high values by decreasing them while increasing the min value
     '''
-    count_error=0
     for lineups in list_of_lineups:
         for lineup in lineups:
             for team in lineup:
@@ -408,7 +407,7 @@ def clean_lineups(list_of_lineups):
                     while sum(team)<10:
                         team[team.index(min(team))]+=1
                 except:
-                    count_error+=1
+                    continue
                 for x in range(len(team)):
                     if type(team[x])==int:
                         if team[x] == 6:
@@ -422,21 +421,16 @@ def clean_lineups(list_of_lineups):
 
 
 
-def get_lineups_columns(list_of_game_data, list_of_lineups, vectors=False):
+def get_lineups_columns(list_of_game_data, list_of_lineups):
     '''
     Getting passed a list of game columns and a list of lineups, combine them into one list of lists
     vectors parameters allows you to decide whether you want the data for each lineup as a 3d-vector or as single values
     WARNING : the value for vectors argument should be the same for all functions
     '''
     all_rows=[]
-    if vectors == True:
-        for i in range(len(list_of_game_data)):
-            row=list_of_game_data[i]+[list_of_lineups[0][i]]+[list_of_lineups[1][i]]+[list_of_lineups[2][i]]+[list_of_lineups[3][i]]+[list_of_lineups[4][i]]
-            all_rows.append(row)
-    else:
-        for i in range(len(list_of_game_data)):
-            row=list_of_game_data[i]+list_of_lineups[0][i]+list_of_lineups[1][i]+list_of_lineups[2][i]+list_of_lineups[3][i]+list_of_lineups[4][i]
-            all_rows.append(row)
+    for i in range(len(list_of_game_data)):
+        row=list_of_game_data[i]+list_of_lineups[0][i]+list_of_lineups[1][i]+list_of_lineups[2][i]+list_of_lineups[3][i]+list_of_lineups[4][i]
+        all_rows.append(row)
     return all_rows
 
 def get_flatten_rows(list_of_rows):
@@ -451,27 +445,24 @@ def get_flatten_rows(list_of_rows):
     return flatten_rows
 
 
-def get_final_df(list_of_flatten_rows, vectors=False):
+def get_final_df(list_of_flatten_rows):
     '''
     Getting passed a list of rows, create a dataframe
     the vectors parameter allows you to choose the adapted columns
     WARNING : the value for vectors argument should be the same for all functions
     '''
-    if vectors == True:
-        columns = ['new_rules', 'game_id', 'localteam_id', 'visitorteam_id','season_id',"score_ht","result_ht","score_ft","result_ft", 'H_lineup_start', "A_lineup_start", 'H_lineup_ht', "A_lineup_ht", 'H_lineup_60', "A_lineup_60", 'H_lineup_75', "A_lineup_75", 'H_lineup_final', "A_lineup_final"]
-    else:
-        columns = [
-            'new_rules', 'game_id', 'localteam_id', 'visitorteam_id',
-            'season_id', 'H_lastyear_points', 'A_lastyear_points',
-            'H_thisyear_position', 'A_thisyear_position', "score_ht", "result_ht",
-            "score_ft", "result_ft", "Home_D_start", "Home_M_start",
-            "Home_A_start", "Away_D_start", "Away_M_start", "Away_A_start",
-            "Home_D_ht", "Home_M_ht", "Home_A_ht", "Away_D_ht", "Away_M_ht",
-            "Away_A_ht", "Home_D_60", "Home_M_60", "Home_A_60", "Away_D_60",
-            "Away_M_60", "Away_A_60", "Home_D_75", "Home_M_75", "Home_A_75",
-            "Away_D_75", "Away_M_75", "Away_A_75", "Home_D_final",
-            "Home_M_final", "Home_A_final", "Away_D_final", "Away_M_final",
-            "Away_A_final"
+    columns = [
+        'new_rules', 'game_id', 'localteam_id', 'visitorteam_id',
+        'season_id', 'H_lastyear_points', 'A_lastyear_points',
+        'H_thisyear_position', 'A_thisyear_position', "score_ht", "result_ht",
+        "score_ft", "result_ft", "Home_D_start", "Home_M_start",
+        "Home_A_start", "Away_D_start", "Away_M_start", "Away_A_start",
+        "Home_D_ht", "Home_M_ht", "Home_A_ht", "Away_D_ht", "Away_M_ht",
+        "Away_A_ht", "Home_D_60", "Home_M_60", "Home_A_60", "Away_D_60",
+        "Away_M_60", "Away_A_60", "Home_D_75", "Home_M_75", "Home_A_75",
+        "Away_D_75", "Away_M_75", "Away_A_75", "Home_D_final",
+        "Home_M_final", "Home_A_final", "Away_D_final", "Away_M_final",
+        "Away_A_final"
         ]
     df_lineups = pd.DataFrame(list_of_flatten_rows, columns=columns)
     return df_lineups
