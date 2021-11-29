@@ -50,7 +50,7 @@ def set_pipeline():
         #, "Result_ht_D", "Result_ht_H", "Result_ht_A"
     pipeline = Pipeline([
                 ('preproc', preprocessor),
-                ('svc_model', SVC(kernel='rbf', C=10))
+                ('svc_model', SVC(kernel='rbf', C=10, probability=True))
             ])
     return pipeline
 

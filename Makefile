@@ -57,8 +57,24 @@ pypi:
 # ----------------------------------
 #      		API & UI
 # ----------------------------------
+IMAGE_NAME=football_stats
+PROJECT_ID=wagon-bootcamp-332313
+DOCKER_IMAGE_NAME = football_stats
+REGION=eu.gcr.io
 run_streamlit:
 	streamlit run app.py
 
 run_api:
 	uvicorn api.fast:app --reload
+
+build_image:
+	docker build --tag=$(REGION)/$(PROJECT_ID)/$(DOCKER_IMAGE_NAME) .
+
+run_image:
+	docker run -it -e PORT=8000 -p 8000:8000 $(REGION)/$(PROJECT_ID)/$(DOCKER_IMAGE_NAME)
+
+docker_push:
+	docker push $(REGION)/$(PROJECT_ID)/$(DOCKER_IMAGE_NAME)
+
+gcp_deploy:
+	gcloud run deploy --image $(REGION)/$(PROJECT_ID)/$(DOCKER_IMAGE_NAME) --platform managed --region europe-west1

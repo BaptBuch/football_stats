@@ -11,6 +11,6 @@ def get_model(path_to_joblib):
 
 def get_real_pred(dict):
     model = get_model(PATH_TO_LOCAL_MODEL)
-    df = pd.DataFrame(dict)
-    result = model.predict(df)
+    df = pd.DataFrame(dict, index=[0])
+    result = model.predict_proba(df)
     return result
