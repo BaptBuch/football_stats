@@ -95,14 +95,14 @@ def get_game_data(list_matchs):
                 match['scores']['ht_score'][0], match['scores']['ht_score'][2]
             ]
         except:
-            score_ht = [0, 0]
+            score_ht = ['0', '0']
         result_ht=get_ht_result_from_ht_score(match)
         try:
             score_ft = [
                 match['scores']['ft_score'][0], match['scores']['ft_score'][2]
             ]
         except:
-            score_ft = [0, 0]
+            score_ft = ['0', '0']
         result_ft=get_ft_result_from_ft_score(match)
         if datetime.strptime(
                 match.get('time').get('starting_at').get('date'),
