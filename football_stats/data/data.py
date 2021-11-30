@@ -387,11 +387,11 @@ def get_all_lineups(matchs):
             all_75_lineups.append([lineup_75_home, lineup_75_away])
             all_final_lineups.append([final_lineup_home, final_lineup_away])
         except:
-            all_start_lineups.append(['NaN', 'NaN'])
-            all_ht_lineups.append(['NaN', 'NaN'])
-            all_60_lineups.append(['NaN', 'NaN'])
-            all_75_lineups.append(['NaN', 'NaN'])
-            all_final_lineups.append(['NaN', 'NaN'])
+            all_start_lineups.append([['4', '3', '3'], ['4', '3', '3']])
+            all_ht_lineups.append([['4', '3', '3'], ['4', '3', '3']])
+            all_60_lineups.append([['4', '3', '3'], ['4', '3', '3']])
+            all_75_lineups.append([['4', '3', '3'], ['4', '3', '3']])
+            all_final_lineups.append([['4', '3', '3'], ['4', '3', '3']])
     return all_start_lineups,all_ht_lineups,all_60_lineups, all_75_lineups, all_final_lineups
 
 def clean_lineups(list_of_lineups):
