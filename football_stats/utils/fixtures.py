@@ -28,7 +28,6 @@ def count_plot_goals(league_ids=league_ids):
         total_nb_goals += nb_goals
     df_nb_of_goals = pd.DataFrame()
     df_nb_of_goals["x"] = list_nb_goals
-    #print(df_nb_of_goals.info())
     df_nb_of_goals["y"] = 0
     y = [0, 0, 0, 0, 0, 0, 0, 0]
     for idx in range(len(df_nb_of_goals["x"])):
@@ -57,9 +56,11 @@ def count_plot_goals(league_ids=league_ids):
             y[7] += 1
             df_nb_of_goals.loc[idx, "y"] = y[7]
 
-    print(df_nb_of_goals.head())
     print(f"The average number of goals is: {sum(list_nb_goals)/nb_of_games}")
     plt.bar(df_nb_of_goals["x"], df_nb_of_goals["y"])
     plt.xlabel('nb of goals')
     plt.ylabel('nb of games')
+    plt.show()
 
+
+count_plot_goals()
